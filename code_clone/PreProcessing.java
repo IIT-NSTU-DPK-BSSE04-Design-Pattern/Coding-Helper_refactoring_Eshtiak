@@ -1,72 +1,60 @@
 package code_clone;
 
-import IO.Filewriter;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import IO.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 public class PreProcessing {
-    //  String stemWord="";
 
-    public String ProcessFile(String filename, String content,String p) throws IOException {
-        String stemWord = "";
-        String methodWithotPunctuation = removePunctuation(content);
-        String methodWithoutKey = removeKeyword(methodWithotPunctuation);
-        String methodWithoutSpace = removeSpace(methodWithoutKey);
-        Porter_stemmer stemmer = new Porter_stemmer();
-        String[] words = methodWithoutSpace.split(" ");
-        for (String word : words) {
-            String stem = stemmer.stemWord(word);
-            stemWord = stemWord + " " + stem;
+    private PorterStemmer stemmer = new PorterStemmer();
+
+    public String processFile(String fileName, String content, String outputPath) throws IOException {
+        if (fileName == null || content == null || outputPath == null) {
+            throw new IllegalArgumentException("File name, content, or output path cannot be null.");
         }
 
-        //  System.out.println("" + stemWord.trim());
-        Filewriter writer = new Filewriter(); //fileWriter class objeect
+        String processedContent = removePunctuation(content);
+        processedContent = removeKeywords(processedContent);
+        processedContent = normalizeWhitespace(processedContent);
+        processedContent = applyStemming(processedContent);
 
-        String path = writer.createProcessFile(filename, stemWord.trim(),p);  //filename-filename with package
-
-        return path;
+        FileWriter writer = new FileWriter();
+        return writer.createProcessFile(fileName, processedContent, outputPath);
     }
 
-    public String removePunctuation(String p) throws IOException {
-
-        //    for (int i = 0; i < method.size(); i++) {
-        //   System.out.println(""+method.get(i));
-        String methodWithoutPunctuation = p.replaceAll("\\p{Punct}", " ");
-        // System.out.println("" + removeMultipleSpaceAndLine(methodWithoutPunctuation));
-        return methodWithoutPunctuation;
+    private String removePunctuation(String content) {
+        return content.replaceAll("\\p{Punct}", " ");
     }
 
-   
-    public String removeSpace(String fileAsString) {
-        String newLineRemove = fileAsString.trim().replace("\n", " ").replace("\r", "");
-        String spaceRemove = newLineRemove.replaceAll("\\s+", " ").trim();
-
-        return spaceRemove;
+    private String normalizeWhitespace(String content) {
+        return content.trim().replaceAll("\\s+", " ");
     }
 
-    public String removeKeyword(String fileAsString) throws FileNotFoundException, IOException {
-        ArrayList<String> keyWordList = new ArrayList<>();
-        ArrayList<String> methodContentList = new ArrayList<>();
-        FileInputStream fis = new FileInputStream("H:\\2-1\\Coding_Helper\\keyword.java"); //keyword.java is a file which contains all keyword
-        byte[] b = new byte[fis.available()];
-        fis.read(b);
+    private String removeKeywords(String content) throws IOException {
+        List<String> keywords = loadKeywords();
+        StringBuilder filteredContent = new StringBuilder();
 
-        String[] keyword = new String(b).trim().split(" ");
-        String newString = " ";
-        for (int i = 0; i < keyword.length; i++) {
-            keyWordList.add(keyword[i].trim());
-
-        }
-        String[] p = fileAsString.split(" ");
-        for (int i = 0; i < p.length; i++) {
-            if (!(keyWordList.contains(p[i].trim()))) {
-                newString = newString + p[i] + " ";
-
+        for (String word : content.split("\\s+")) {
+            if (!keywords.contains(word.trim())) {
+                filteredContent.append(word).append(" ");
             }
         }
-        return newString;
+
+        return filteredContent.toString().trim();
+    }
+
+    private List<String> loadKeywords() throws IOException {
+        // Replace with dynamic loading from configuration
+        return List.of("class", "public", "static", "void"); // Example keywords
+    }
+
+    private String applyStemming(String content) {
+        StringBuilder stemmedContent = new StringBuilder();
+
+        for (String word : content.split("\\s+")) {
+            stemmedContent.append(stemmer.stem(word)).append(" ");
+        }
+
+        return stemmedContent.toString().trim();
     }
 }
