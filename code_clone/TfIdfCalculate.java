@@ -1,149 +1,70 @@
 package code_clone;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.*;
+import java.util.*;
 
-public class TfIdfCalculate {
+public class TfIdfCalculator {
 
-    ArrayList<String[]> FileWordProject1 = new ArrayList<>();
-    ArrayList<String[]> FileWordProject2 = new ArrayList<>();
-    static ArrayList<double[]> tfidfvectorProject1 = new ArrayList<>();
-    static ArrayList<double[]> tfidfvectorProject2 = new ArrayList<>();
-    ArrayList<String> processProjectFile = new ArrayList<>();
-    ArrayList<String> combineTerms = new ArrayList<>();
-    HashMap<String, Double> idfmap = new HashMap<>();
-    ArrayList<String> allterms1 = new ArrayList<>();
-    ArrayList<String> allterms2 = new ArrayList<>();
+    private List<String[]> project1FileWords = new ArrayList<>();
+    private List<String[]> project2FileWords = new ArrayList<>();
+    private List<double[]> project1TfIdfVectors = new ArrayList<>();
+    private List<double[]> project2TfIdfVectors = new ArrayList<>();
+    private List<String> combinedTerms = new ArrayList<>();
+    private Map<String, Double> idfMap = new HashMap<>();
 
-    public String[] fileRead(String path) throws FileNotFoundException, IOException {
-        File directoryPath = new File(path);
-        StringBuilder sb1 = new StringBuilder();
-        File fileList[] = directoryPath.listFiles();
-        BufferedReader in = null;
-
-        for (File file : fileList) {
-            if (file.getName().endsWith(".txt")) {
-                StringBuilder sb = new StringBuilder();
-                in = new BufferedReader(new FileReader(file));
-                String s = null;
-                while ((s = in.readLine()) != null) {
-                    sb.append(s);
-                }
-                // System.out.println("sb=" + sb);
-                if (path.equals(CloneCheck.path1)) {
-                 //  System.out.println("="+path);
-                    FileWordProject1.add(sb.toString().trim().split(" "));
-
-                }
-                if (path.equals(CloneCheck.path2)) {
-                  //  System.out.println("2="+path);
-                    FileWordProject2.add(sb.toString().trim().split(" "));
-                }
-               // System.out.println("" + sb1);
-                sb1.append(" ").append(sb);
-                processProjectFile.add(sb.toString().trim());//contains two project file one by one 
-            }
+    public void readProjectFiles(String path, List<String[]> fileWordList) throws IOException {
+        File directory = new File(path);
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException("Invalid directory: " + path);
         }
 
-        String allterm[] = sb1.toString().trim().split(" ");
-        return allterm;
+        for (File file : Objects.requireNonNull(directory.listFiles((dir, name) -> name.endsWith(".txt")))) {
+            String fileContent = readFileContent(file);
+            fileWordList.add(fileContent.split("\\s+"));
+        }
     }
 
-    public void getUniqueWordProject1(String path1) throws IOException {
-        String[] allterm = fileRead(path1);
-
-        for (String term : allterm) {
-            if (!allterms1.contains(term)) {
-                allterms1.add(term); //project1 unique word
+    private String readFileContent(File file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            StringBuilder content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append(" ");
             }
+            return content.toString().trim();
         }
-
     }
 
-    public void getUniqueWordProject2(String path2) throws IOException {
-        String[] allterm = fileRead(path2);
-        for (String term : allterm) {
-            if (!allterms2.contains(term)) {
-                allterms2.add(term);//project2 unique word
-            }
-        }
-        //    System.out.println("" + allterms2);
-        //   allterms3.addAll(allterms1);
-        //  allterms3.addAll(allterms2);
-    }
-
-    public void IdfCal() {
-        double idf;
-        //ArrayList<String> combine = new ArrayList<>();//combine project1 and project2 arrayList
-        combineTerms.addAll(allterms1);
-        combineTerms.addAll(allterms2);
-        // System.out.println("p=" + processProjectFile);
-        // System.out.println("combine="+combine);
-        for (String term : combineTerms) {
-            idf = new getTfIdf().getIdf(processProjectFile, term);
-            idfmap.put(term, idf);
-        }
-       // System.out.println("" + idfmap);
-    }
-
-    public void tfIdfVectorProject1() {
-        double tf;
-        double idf;
-        double tfidf;
-        for (String[] fileword : FileWordProject1) {
-            int count = 0;
-            double[] tfidfvector;
-            tfidfvector = new double[combineTerms.size()];
-            for (String term : combineTerms) {
-                tf = new code_clone.getTfIdf().getTf(fileword, term);
-                if (idfmap.containsKey(term)) {
-                    idf = idfmap.get(term);
-                    //   System.out.println(term+" "+idf);
-                } else {
-                    idf = 0;
+    public void calculateUniqueTerms(List<String[]> fileWordList, List<String> uniqueTerms) {
+        for (String[] words : fileWordList) {
+            for (String word : words) {
+                if (!uniqueTerms.contains(word)) {
+                    uniqueTerms.add(word);
                 }
-                tfidf = tf * idf;
-                //  System.out.println(term+" 1="+tfidf);
-                tfidfvector[count] = tfidf;
-                count++;
-                //  System.out.println(term+" tfidf="+tfidf);
             }
-            tfidfvectorProject1.add(tfidfvector);
         }
-       // System.out.println(""+CloneCheck.ProjectFileName1.size());
-       // System.out.println("f="+FileWordProject1.size());
-      //  System.out.println("t="+tfidfvectorProject1.size());
     }
 
-    public void tfIdfVectorProject2() {
-        double tf;
-        double idf;
-        double tfidf;
-        for (String[] fileword : FileWordProject2) {
-            int count = 0;
-            double[] tfidfvector;
-            tfidfvector = new double[combineTerms.size()];
-            for (String term : combineTerms) {
-                tf = new getTfIdf().getTf(fileword, term);
-                if (idfmap.containsKey(term)) {
-                    idf = idfmap.get(term);
-                    //   System.out.println(term+" "+idf);
-                } else {
-                    idf = 0;
-                }
-                tfidf = tf * idf;
-                // System.out.println(term+" 2="+tfidf);
-                tfidfvector[count] = tfidf;
-                count++;
-                //  System.out.println(term+" tfidf="+tfidf);
+    public void calculateIdf(List<String[]> allFiles) {
+        TfIdfCalculatorHelper helper = new TfIdfCalculatorHelper();
+        for (String term : combinedTerms) {
+            double idf = helper.calculateIdf(allFiles, term);
+            idfMap.put(term, idf);
+        }
+    }
+
+    public void calculateTfIdfVectors(List<String[]> fileWords, List<double[]> tfIdfVectors) {
+        TfIdfCalculatorHelper helper = new TfIdfCalculatorHelper();
+
+        for (String[] fileWord : fileWords) {
+            double[] tfIdfVector = new double[combinedTerms.size()];
+            for (int i = 0; i < combinedTerms.size(); i++) {
+                String term = combinedTerms.get(i);
+                double tf = helper.calculateTf(fileWord, term);
+                double idf = idfMap.getOrDefault(term, 0.0);
+                tfIdfVector[i] = tf * idf;
             }
-            tfidfvectorProject2.add(tfidfvector);
-            
+            tfIdfVectors.add(tfIdfVector);
         }
     }
 }
