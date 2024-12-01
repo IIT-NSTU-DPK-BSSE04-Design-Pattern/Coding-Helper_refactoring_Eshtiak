@@ -3,68 +3,45 @@ package code_clone;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CosineSimilarity {
 
-    public static ArrayList<double[]> similarArray = new ArrayList<double[]>();
-   // public static ArrayList<Double> clone = new ArrayList<>();
+    public List<List<Double>> calculateSimilarity(List<String> fileNames1, List<String> fileNames2) {
+        List<List<Double>> similarityMatrix = new ArrayList<>();
 
-    public void getCosinesimilarity() {
-        double similarity = 0;
-        for (int i = 0; i < CloneCheck.ProjectFileName1.size(); i++) {
-            System.out.println("");
-            double[] similar;
-            //int k = CloneCheck.ProjectFileName2.size();
-            similar = new double[CloneCheck.ProjectFileName2.size()];
-            int count = 0;
-            // similar = new double[TfIdfCalculate.tfidfvectorProject2.size() + 1];
-            for (int j = 0; j < CloneCheck.ProjectFileName2.size(); j++) {
-                similarity = cosineSimilarity(TfIdfCalculate.tfidfvectorProject1.get(i), TfIdfCalculate.tfidfvectorProject2.get(j));
+        for (int i = 0; i < fileNames1.size(); i++) {
+            List<Double> similarities = new ArrayList<>();
+            for (int j = 0; j < fileNames2.size(); j++) {
+                double similarity = cosineSimilarity(TfIdfCalculate.tfidfvectorProject1.get(i),
+                        TfIdfCalculate.tfidfvectorProject2.get(j));
                 BigDecimal bd = new BigDecimal(similarity).setScale(2, RoundingMode.HALF_UP);
-                double getSimilar = bd.doubleValue();
-                System.out.println(CloneCheck.ProjectFileName1.get(i) + " vs " + CloneCheck.ProjectFileName2.get(j) + " " + getSimilar + "%");
-                similar[count] = similarity;
-             //   clone.add(similarity);
-
-                count++;
+                similarities.add(bd.doubleValue());
             }
-            similarArray.add(similar);
+            similarityMatrix.add(similarities);
         }
 
+        return similarityMatrix;
     }
 
-    public double cosineSimilarity(double[] project1, double[] project2) {
-        double dotproduct = 0;
-        double project1magnitude = 0;
-        double project2magnitude = 0;
-        double cosinesimilarity = 0;
-        for (int i = 0; i < project2.length; i++) {
-            dotproduct += project1[i] * project2[i];
-            project1magnitude += Math.pow(project1[i], 2);
-            project2magnitude += Math.pow(project2[i], 2);
+    private double cosineSimilarity(double[] vector1, double[] vector2) {
+        double dotProduct = 0.0;
+        double magnitude1 = 0.0;
+        double magnitude2 = 0.0;
 
+        for (int i = 0; i < vector2.length; i++) {
+            dotProduct += vector1[i] * vector2[i];
+            magnitude1 += Math.pow(vector1[i], 2);
+            magnitude2 += Math.pow(vector2[i], 2);
         }
-        project1magnitude = Math.sqrt(project1magnitude);
-        project2magnitude = Math.sqrt(project2magnitude);
-        //   if(project1magnitude!=0 && project2magnitude!=0){
-        cosinesimilarity = dotproduct / (project1magnitude * project2magnitude) * 100;
-        if (Double.isNaN(cosinesimilarity)) {
-            cosinesimilarity = 0.0;
-        }
-        return cosinesimilarity;
 
+        magnitude1 = Math.sqrt(magnitude1);
+        magnitude2 = Math.sqrt(magnitude2);
+
+        if (magnitude1 == 0 || magnitude2 == 0) {
+            return 0.0;
+        }
+
+        return (dotProduct / (magnitude1 * magnitude2)) * 100;
     }
-
-   /* public void getAverage() {
-        double sum = 0;
-        for (int i = 0; i < clone.size(); i++) {
-          //  System.out.println(clone.get(i));
-            sum += clone.get(i);
-        }
-      
-        double average = sum /clone.size();
-     //   System.out.println(average);
-
-    }*/
-
 }
