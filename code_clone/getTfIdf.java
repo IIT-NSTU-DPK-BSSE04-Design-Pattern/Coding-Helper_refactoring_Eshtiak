@@ -1,36 +1,38 @@
 package code_clone;
-import java.util.List;
-public class getTfIdf {
 
-    public double getTf(String[] fileContent, String term) {
-        double fileLength = fileContent.length;
-        int count = 0;
-        for (String s : fileContent) {
-            if (s.equalsIgnoreCase(term)) {
-                count++;
+import java.util.List;
+
+public class TfIdfCalculator {
+
+    public double calculateTf(String[] fileContent, String term) {
+        if (fileContent == null || term == null || fileContent.length == 0) {
+            return 0.0;
+        }
+        double termCount = 0;
+        for (String word : fileContent) {
+            if (word.equalsIgnoreCase(term)) {
+                termCount++;
             }
         }
-      //  System.out.println("tf="+count/fileLength);
-        return count / fileLength;
+        return termCount / fileContent.length;
     }
 
-    public double getIdf(List allFile, String term) {
-        double count = 0;
-        double idf;
-  
-        for (int i = 0; i < allFile.size(); i++) {
+    public double calculateIdf(List<String[]> allFiles, String term) {
+        if (allFiles == null || term == null || allFiles.isEmpty()) {
+            return 0.0;
+        }
+        double documentCount = 0;
 
-            String[] fileContent;
-            fileContent = allFile.get(i).toString().split(" ");
-            for (String ss : fileContent) {
-            //   System.out.println(""+ss);
-                if (ss.equalsIgnoreCase(term)) {
-                    count++;
+        for (String[] fileContent : allFiles) {
+            if (fileContent == null) continue;
+            for (String word : fileContent) {
+                if (word.equalsIgnoreCase(term)) {
+                    documentCount++;
                     break;
-
                 }
             }
         }
-        return 1 + Math.log(allFile.size() / count);
+
+        return 1 + Math.log(allFiles.size() / (documentCount > 0 ? documentCount : 1));
     }
 }
